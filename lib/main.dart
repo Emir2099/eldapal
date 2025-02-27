@@ -1,9 +1,19 @@
+import 'package:eldapal/screens/home_screen.dart';
+import 'package:eldapal/themes/app_theme.dart';
+import 'package:eldapal/themes/elder_theme.dart';
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
-import 'themes/app_theme.dart';
-import 'themes/elder_theme.dart';
+import 'package:provider/provider.dart';
+import 'providers/medications.dart';
+import './screens/medication/medication_screen.dart';
 
-void main() => runApp(const ElderCareApp());
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => MedicationsProvider(),
+      child: const ElderCareApp(),
+    ),
+  );
+}
 
 class ElderCareApp extends StatefulWidget {
   const ElderCareApp({super.key});
