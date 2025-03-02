@@ -4,13 +4,12 @@ import 'package:intl/intl.dart';
 class DateSelector extends StatefulWidget {
   final DateTime selectedDate;
   final Function(DateTime) onDateChanged;
-  final bool elderMode;
 
   const DateSelector({
+    Key? key,
     required this.selectedDate,
     required this.onDateChanged,
-    required this.elderMode,
-  });
+  }) : super(key: key);
 
   @override
   _DateSelectorState createState() => _DateSelectorState();
@@ -33,20 +32,16 @@ class _DateSelectorState extends State<DateSelector> {
   }
 
   void _scrollToSelectedDate() {
-    final index = _dates.indexWhere((date) => 
-      date.year == widget.selectedDate.year &&
-      date.month == widget.selectedDate.month &&
-      date.day == widget.selectedDate.day
-    );
-    
+    final index = _dates.indexWhere((date) =>
+        date.year == widget.selectedDate.year &&
+        date.month == widget.selectedDate.month &&
+        date.day == widget.selectedDate.day);
     if (index != -1) {
-      final offset = (index * (widget.elderMode ? 70.0 : 60.0)) - 
-        MediaQuery.of(context).size.width / 2 +
-        (widget.elderMode ? 35.0 : 30.0);
-      
+      // Using default sizes: width 60, item spacing 8
+      final offset = (index * 60.0) - MediaQuery.of(context).size.width / 2 + 30;
       _scrollController.animateTo(
         offset,
-        duration: Duration(milliseconds: 500),
+        duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOut,
       );
     }
@@ -55,7 +50,7 @@ class _DateSelectorState extends State<DateSelector> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: widget.elderMode ? 80 : 70,
+      height: 70,
       child: ListView.builder(
         controller: _scrollController,
         scrollDirection: Axis.horizontal,
@@ -68,12 +63,10 @@ class _DateSelectorState extends State<DateSelector> {
           final isToday = date.year == DateTime.now().year &&
               date.month == DateTime.now().month &&
               date.day == DateTime.now().day;
-
           return _DateItem(
             date: date,
             isSelected: isSelected,
             isToday: isToday,
-            elderMode: widget.elderMode,
             onTap: () => widget.onDateChanged(date),
           );
         },
@@ -86,24 +79,23 @@ class _DateItem extends StatelessWidget {
   final DateTime date;
   final bool isSelected;
   final bool isToday;
-  final bool elderMode;
   final VoidCallback onTap;
 
   const _DateItem({
+    Key? key,
     required this.date,
     required this.isSelected,
     required this.isToday,
-    required this.elderMode,
     required this.onTap,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: elderMode ? 70 : 60,
-        margin: EdgeInsets.symmetric(horizontal: 4),
+        width: 60,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: isSelected ? Colors.blue : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
@@ -115,15 +107,15 @@ class _DateItem extends StatelessWidget {
             Text(
               DateFormat('E').format(date),
               style: TextStyle(
-                fontSize: elderMode ? 16 : 14,
+                fontSize: 14,
                 color: isSelected ? Colors.white : Colors.grey,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               date.day.toString(),
               style: TextStyle(
-                fontSize: elderMode ? 24 : 20,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: isSelected ? Colors.white : Colors.black,
               ),

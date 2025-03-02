@@ -1,3 +1,7 @@
+import 'package:eldapal/screens/appointments/appointment_screen.dart';
+import 'package:eldapal/screens/emergency/emergency_screen.dart';
+import 'package:eldapal/screens/health/health_screen.dart';
+import 'package:eldapal/screens/medication/medication_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -422,6 +426,7 @@ class _CircularCarouselState extends State<_CircularCarousel> {
     ),
   ];
   late final List<List<_CarouselTile>> _pagedTiles;
+  
   @override
   void initState() {
     super.initState();
@@ -441,6 +446,7 @@ class _CircularCarouselState extends State<_CircularCarousel> {
     });
   }
   @override
+  
   Widget build(BuildContext context) {
     return Column(
       children: [
@@ -492,7 +498,7 @@ class _CircularCarouselState extends State<_CircularCarousel> {
       ],
     );
   }
-  Widget _buildTile(BuildContext context, _CarouselTile tile) {
+Widget _buildTile(BuildContext context, _CarouselTile tile) {
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -515,7 +521,32 @@ class _CircularCarouselState extends State<_CircularCarousel> {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            // Handle tile tap if needed.
+            // Routing logic based on tile title.
+            if (tile.title == "Medicine Reminder") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MedicationScreen()),
+              );
+            } else if (tile.title == "Appointments") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AppointmentsScreen()),
+              );
+            } else if (tile.title == "Emergency") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EmergencyScreen()),
+              );
+            } else if (tile.title == "Health Tracking") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HealthScreen()),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Feature not implemented")),
+              );
+            }
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

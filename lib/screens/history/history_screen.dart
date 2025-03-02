@@ -1,4 +1,3 @@
-// lib/screens/history_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
@@ -6,18 +5,16 @@ import '/models/medication_model.dart';
 
 class HistoryScreen extends StatelessWidget {
   final List<Medication> medications;
-  final bool elderMode;
 
   const HistoryScreen({
+    Key? key,
     required this.medications,
-    required this.elderMode,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final groupedMeds = groupBy(medications, (m) => 
-      DateFormat('yyyy-MM-dd').format(m.date)
-    );
+    final groupedMeds = groupBy(medications, (m) =>
+        DateFormat('yyyy-MM-dd').format(m.date));
 
     return Scaffold(
       appBar: AppBar(title: const Text('Medication History')),
@@ -30,16 +27,19 @@ class HistoryScreen extends StatelessWidget {
           final date = DateTime.parse(dateKey);
 
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListTile(
-                title: Text(
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: Colors.grey.shade200,
+                child: Text(
                   DateFormat('MMM dd, yyyy').format(date),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
               ...meds.map((m) => _MedicationHistoryItem(
                     medication: m,
-                    elderMode: elderMode,
                   )),
             ],
           );
@@ -51,26 +51,39 @@ class HistoryScreen extends StatelessWidget {
 
 class _MedicationHistoryItem extends StatelessWidget {
   final Medication medication;
-  final bool elderMode;
 
   const _MedicationHistoryItem({
+    Key? key,
     required this.medication,
-    required this.elderMode,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final isMissed = !medication.isTaken && 
-      medication.date.isBefore(DateTime.now());
+    final isMissed = !medication.isTaken && medication.date.isBefore(DateTime.now());
 
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: medication.isTaken 
-          ? Colors.green[50] 
-          : isMissed ? Colors.red[50] : Colors.white,
+        color: medication.isTaken
+            ? Colors.green[50]
+            : isMissed ? Colors.red[50] : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
       child: ListTile(
-        title: Text(medication.name),
+        contentPadding: EdgeInsets.zero,
+        title: Text(
+          medication.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Text('${medication.dosage} - ${medication.formattedTime}'),
         trailing: Text(
           medication.isTaken ? 'Taken' : 'Missed',

@@ -1,71 +1,110 @@
-// lib/widgets/medication_card.dart
 import 'package:flutter/material.dart';
 import '/models/medication_model.dart';
 import '/themes/app_theme.dart';
-import '/themes/elder_theme.dart';
 
 class MedicationCard extends StatelessWidget {
   final Medication medication;
   final VoidCallback onEdit;
   final VoidCallback onLongPress;
-  final bool elderMode;
 
   const MedicationCard({
+    Key? key,
     required this.medication,
     required this.onEdit,
     required this.onLongPress,
-    required this.elderMode,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final theme = elderMode ? elderTheme : appTheme;
-    
+    final bool isTaken = medication.isTaken;
+    final Gradient cardGradient = isTaken
+        ? LinearGradient(
+            colors: [Colors.green.shade200, Colors.green.shade50],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : LinearGradient(
+            colors: [Colors.white, Colors.grey.shade100],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+
     return GestureDetector(
       onLongPress: onLongPress,
-      child: Card(
-        elevation: 4,
-        margin: EdgeInsets.symmetric(vertical: 8, horizontal: elderMode ? 8 : 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: cardGradient,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ],
         ),
-        color: medication.isTaken ? Colors.green[50] : Colors.white,
-        child: ListTile(
-          contentPadding: EdgeInsets.all(elderMode ? 20 : 16),
-          leading: Icon(Icons.medication, size: elderMode ? 40 : 32),
-          title: Text(
-            medication.name,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontSize: elderMode ? 22 : 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Dosage: ${medication.dosage}'),
-              Text('Time: ${medication.formattedTime}'),
-              Text('Type: ${medication.type}'),
-              Text('Frequency: ${medication.frequency}'),
-            ],
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: Icon(
-                  Icons.check_circle,
-                  size: elderMode ? 32 : 24,
-                  color: medication.isTaken ? Colors.green : Colors.grey,
+        child: Row(
+          children: [
+            Hero(
+              tag: 'medication_icon_${medication.id}',
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                radius: 30,
+                child: Icon(
+                  Icons.medication,
+                  size: 30,
+                  color: Theme.of(context).primaryColor,
                 ),
-                onPressed: () {},
               ),
-              IconButton(
-                icon: Icon(Icons.edit, size: elderMode ? 28 : 20),
-                onPressed: onEdit,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    medication.name,
+                    style: Theme.of(context)
+                        .textTheme
+                        .headline6
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Dosage: ${medication.dosage}',
+                      style: Theme.of(context).textTheme.bodyText2),
+                  const SizedBox(height: 4),
+                  Text('Time: ${medication.formattedTime}',
+                      style: Theme.of(context).textTheme.bodyText2),
+                  const SizedBox(height: 4),
+                  Text('Type: ${medication.type}',
+                      style: Theme.of(context).textTheme.bodyText2),
+                  const SizedBox(height: 4),
+                  Text('Frequency: ${medication.frequency}',
+                      style: Theme.of(context).textTheme.bodyText2),
+                ],
               ),
-            ],
-          ),
+            ),
+            Column(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.check_circle,
+                    size: 28,
+                    color: isTaken ? Colors.green : Colors.grey,
+                  ),
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit, size: 24),
+                  onPressed: onEdit,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

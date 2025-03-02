@@ -1,36 +1,33 @@
 import 'package:flutter/material.dart';
 import '../themes/app_theme.dart';
-import '../themes/elder_theme.dart';
 
 class CustomDialog extends StatelessWidget {
   final String title;
   final Widget content;
   final List<Widget> actions;
-  final bool elderMode;
 
   const CustomDialog({
+    Key? key,
     required this.title,
     required this.content,
     required this.actions,
-    this.elderMode = false,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final theme = elderMode ? elderTheme : appTheme;
-    
+    final theme = appTheme; // Using your default app theme
     return AlertDialog(
       titlePadding: const EdgeInsets.all(24),
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
       actionsPadding: const EdgeInsets.all(24),
       backgroundColor: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(elderMode ? 16 : 24),
+        borderRadius: BorderRadius.circular(24),
       ),
       title: Text(
         title,
         style: theme.textTheme.titleLarge?.copyWith(
-          fontSize: elderMode ? 24 : 20,
+          fontSize: 20,
           color: theme.colorScheme.onSurface,
         ),
       ),
@@ -42,7 +39,7 @@ class CustomDialog extends StatelessWidget {
             child: Text(
               (action.child as Text).data!,
               style: TextStyle(
-                fontSize: elderMode ? 18 : 16,
+                fontSize: 16,
                 color: theme.colorScheme.primary,
               ),
             ),
