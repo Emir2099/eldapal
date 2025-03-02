@@ -530,7 +530,7 @@ Widget _buildTile(BuildContext context, _CarouselTile tile) {
             } else if (tile.title == "Appointments") {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AppointmentsScreen()),
+                MaterialPageRoute(builder: (context) => AppointmentsListScreen()),
               );
             } else if (tile.title == "Emergency") {
               Navigator.push(
