@@ -36,7 +36,7 @@ class _ElderBottomNavState extends State<ElderBottomNav> {
       final size = MediaQuery.of(context).size;
       final navWidth = _isVertical ? 65 : size.width * 0.7;
       final navHeight = _isVertical ? 200 : 65;
-      _position = Offset((size.width - navWidth) / 2, size.height - navHeight - 50);
+      _position = Offset((size.width - navWidth) / 2.5, size.height - navHeight - 50);
     }
   }
 
@@ -195,7 +195,7 @@ class _ElderBottomNavState extends State<ElderBottomNav> {
       final size = MediaQuery.of(context).size;
       final navWidth = size.width * 0.7;
       const navHeight = 65;
-      _position = Offset((size.width - navWidth) / 2, size.height - navHeight - 50);
+      _position = Offset((size.width - navWidth) / 2.5, size.height - navHeight - 50);
     });
   }
 

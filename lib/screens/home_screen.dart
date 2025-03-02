@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import '../widgets/elder_bottom_nav.dart';
 import '../screens/elders/elder_tab_screen.dart';
 import '../screens/settings/setting_screen.dart';
-
+import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
+import '../services/music_service.dart'; // See music_service.dart below.
 class HomeScreen extends StatefulWidget {
   final bool elderMode;
   final ValueChanged<bool> onThemeChanged;
@@ -25,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Three tabs: 0 = Fancy Home, 1 = Elder tab, 2 = Settings tab
+    // Three tabs: 0 = Fancy Home, 1 = Elder tab, 2 = Settings tab.
     _screens = [
       _FancyHomeContent(
         elderMode: widget.elderMode,
@@ -45,16 +48,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Extend body to allow nav bar to float over content.
+      // Extend body so that the nav bar can float over content.
       extendBody: true,
       body: Stack(
         children: [
-          // Main content.
+          // Main content via an IndexedStack.
           IndexedStack(
             index: _selectedIndex,
             children: _screens,
           ),
-          // Custom draggable & long-press nav bar.
+          // Our custom draggable & long-press nav bar.
           ElderBottomNav(
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
@@ -66,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// Your fancy home content remains largely unchanged.
+/// Example fancy home content.
 class _FancyHomeContent extends StatelessWidget {
   final bool elderMode;
   final ValueChanged<bool> onThemeChanged;
@@ -90,82 +93,102 @@ class _FancyHomeContent extends StatelessWidget {
     );
   }
 
-  Widget _buildAnimatedHeader(BuildContext context) {
-    return SizedBox(
-      height: 400,
-      child: Stack(
-        children: [
-          // Animated wave background.
-          const Positioned.fill(
-            child: _AnimatedWave(height: 500),
+
+String getMood() {
+  final hour = DateTime.now().hour;
+  if (hour >= 6 && hour < 12) {
+    return "CALMING";
+  } else if (hour >= 12 && hour < 18) {
+    return "SOOTHING";
+  } else {
+    return "RELAXING";
+  }
+}
+
+Widget _buildAnimatedHeader(BuildContext context) {
+  // Get the current mood.
+  final mood = getMood();
+  // Format current time in 24-hr format.
+  final currentTime = DateFormat('HH:mm').format(DateTime.now());
+
+  return SizedBox(
+    height: 400,
+    child: Stack(
+      children: [
+        // Animated wave background.
+        const Positioned.fill(
+          child: _AnimatedWave(height: 500),
+        ),
+        // Optional menu icon.
+        Positioned(
+          top: 40,
+          right: 20,
+          child: IconButton(
+            icon: const Icon(Icons.more_horiz, color: Colors.white70),
+            onPressed: () {
+              // TODO: handle menu if needed.
+            },
           ),
-          // Optional menu icon.
-          Positioned(
-            top: 40,
-            right: 20,
-            child: IconButton(
-              icon: const Icon(Icons.more_horiz, color: Colors.white70),
-              onPressed: () {
-                // TODO: handle menu if needed.
-              },
-            ),
-          ),
-          // Centered header content.
-          Positioned(
-            top: 70,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                // Pill-shaped label.
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white70,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    "Meditation for tonight",
-                    style: Theme.of(context).textTheme.subtitle2?.copyWith(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
+        ),
+        // Centered header content.
+        Positioned(
+          top: 70,
+          left: 0,
+          right: 0,
+          child: Column(
+            children: [
+              // Pill-shaped label.
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white70,
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  "CALMING",
-                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.2,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Your Body's Wisdom",
-                  style: Theme.of(context).textTheme.headline4?.copyWith(
+                child: Text(
+                  "Meditation for tonight",
+                  style: Theme.of(context).textTheme.subtitle2?.copyWith(
                         color: Colors.black87,
                         fontWeight: FontWeight.bold,
                       ),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  "04:35",
-                  style: Theme.of(context).textTheme.subtitle1?.copyWith(
-                        color: Colors.black54,
-                      ),
-                ),
-                const SizedBox(height: 40),
-                const _AnimatedPlayButton(),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              // Dynamic mood text.
+              Text(
+                mood,
+                style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Your Body's Wisdom",
+                style: Theme.of(context).textTheme.headline4?.copyWith(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              // Show current time in 24-hr format.
+              Text(
+                currentTime,
+                style: Theme.of(context).textTheme.subtitle1?.copyWith(
+                      color: Colors.black54,
+                    ),
+              ),
+              const SizedBox(height: 40),
+              // Updated play button that plays music.
+              const _AnimatedPlayButton(),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }
 
 /// Animated wave widget.
@@ -244,19 +267,25 @@ class _AnimatedWaveClipper extends CustomClipper<Path> {
   bool shouldReclip(_AnimatedWaveClipper oldClipper) => true;
 }
 
-/// Bobbing play button.
+/// Updated bobbing play button that integrates AI-based music playback.
+
 class _AnimatedPlayButton extends StatefulWidget {
   const _AnimatedPlayButton({Key? key}) : super(key: key);
   @override
   _AnimatedPlayButtonState createState() => _AnimatedPlayButtonState();
 }
+
 class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _offsetAnimation;
+  final MusicService _musicService = MusicService();
+  bool _isPlaying = false;
+
   @override
   void initState() {
     super.initState();
+    // Bobbing animation controller.
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -265,11 +294,13 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
+  
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -277,7 +308,9 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
       builder: (ctx, child) {
         return Transform.translate(
           offset: Offset(0, _offsetAnimation.value),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
             width: 64,
             height: 64,
             decoration: BoxDecoration(
@@ -285,18 +318,60 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 6,
+                  color: _isPlaying
+                      ? Colors.blueAccent.withOpacity(0.8)
+                      : Colors.black12,
+                  blurRadius: _isPlaying ? 20 : 6,
                   offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: IconButton(
-              icon: const Icon(Icons.play_arrow, size: 32),
-              color: Colors.black87,
-              onPressed: () {
-                // TODO: handle play action.
+              onPressed: () async {
+                if (_isPlaying) {
+                  await _musicService.audioPlayer.pause();
+                  setState(() {
+                    _isPlaying = false;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Music Paused')),
+                  );
+                } else {
+                  try {
+                    await _musicService.playRecommendedSong();
+                    final song = await _musicService.getRecommendedSong();
+                    setState(() {
+                      _isPlaying = true;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Now playing: ${song['title']} (${song['mood']})',
+                        ),
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: ${e.toString()}')),
+                    );
+                  }
+                }
               },
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: animation, child: child),
+                  );
+                },
+                child: Icon(
+                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                  key: ValueKey<bool>(_isPlaying),
+                  size: 32,
+                  color: Colors.black87,
+                ),
+              ),
             ),
           ),
         );
@@ -304,7 +379,6 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton>
     );
   }
 }
-
 /// Carousel that shows 2 tiles per page.
 class _CircularCarousel extends StatefulWidget {
   final bool elderMode;
@@ -362,7 +436,6 @@ class _CircularCarouselState extends State<_CircularCarousel> {
         setState(() {
           _currentPage = rounded;
         });
-        // Trigger haptic feedback.
         HapticFeedback.lightImpact();
       }
     });
@@ -442,7 +515,7 @@ class _CircularCarouselState extends State<_CircularCarousel> {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            // Handle tile tap.
+            // Handle tile tap if needed.
           },
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
