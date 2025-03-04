@@ -38,7 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
         elderMode: widget.elderMode,
         onThemeChanged: widget.onThemeChanged,
       ),
-      const ElderTabScreen(),
+      ElderTabScreen(
+        onElderModeChanged: widget.onThemeChanged,
+      ),
       const SettingsScreen(),
     ];
   }
@@ -62,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: _screens,
           ),
           // Our custom draggable & long-press nav bar.
+          if (!widget.elderMode)
           ElderBottomNav(
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
