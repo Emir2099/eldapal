@@ -40,17 +40,23 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopSection(),
-            const SizedBox(height: 16),
-            _buildMyAppointmentsCard(),
-            const SizedBox(height: 24),
-            _buildNearestPlacesSection(),
-            const SizedBox(height: 24),
-            _buildBottomButton(),
-            const SizedBox(height: 24),
-          ],
+        child: SingleChildScrollView( // Add ScrollView to prevent overflow
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
+                children: [
+                  _buildTopSection(),
+                  const SizedBox(height: 16),
+                  _buildMyAppointmentsCard(),
+                  const SizedBox(height: 24),
+                  _buildNearestPlacesSection(),
+                  const SizedBox(height: 24),
+                  _buildBottomButton(),
+                  const SizedBox(height: 24),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -58,10 +64,13 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
 
   /// **Top Section: Gradient + Back Button + Horizontal Icons + Doctor Image**
   Widget _buildTopSection() {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360;
+    
     return Stack(
       children: [
         Container(
-          height: 250,
+          height: screenSize.height * 0.3, // Responsive height
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Color.fromARGB(255, 236, 191, 191), Color.fromARGB(255, 236, 186, 202), Color.fromARGB(255, 228, 215, 230)],
@@ -79,66 +88,83 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 70, left: 30, right: 20),
+          padding: EdgeInsets.only(
+            top: screenSize.height * 0.08,
+            left: screenSize.width * 0.05,
+            right: screenSize.width * 0.05,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
+                flex: 3,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       specialty,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white70,
-                        fontSize: 16,
+                        fontSize: isSmallScreen ? 14 : 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 14),
                     Text(
                       doctorName,
-                      style: const TextStyle(
-                        fontSize: 22,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 18 : 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
+                    Wrap( // Use Wrap for flexible layout
+                      spacing: 18,
                       children: [
                         Text(
                           dateLabel,
-                          style: const TextStyle(fontSize: 16, color: Colors.white70),
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14 : 16,
+                            color: Colors.white70
+                          ),
                         ),
-                        const SizedBox(width: 18),
                         Text(
                           timeLabel,
-                          style: const TextStyle(fontSize: 16, color: Colors.white70),
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 14 : 16,
+                            color: Colors.white70
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    // **Horizontal Icons**
-                    Row(
-                      children: [
-                        _buildIcon(Icons.call),
-                        const SizedBox(width: 12),
-                        _buildIcon(Icons.videocam),
-                        const SizedBox(width: 12),
-                        _buildIcon(Icons.chat),
-                      ],
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildIcon(Icons.call),
+                          const SizedBox(width: 12),
+                          _buildIcon(Icons.videocam),
+                          const SizedBox(width: 12),
+                          _buildIcon(Icons.chat),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              ClipRRect(
-                // borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  doctorImageAsset,
-                  width: 180,
-                  height: 180,
-                  fit: BoxFit.cover,
+              SizedBox(width: screenSize.width * 0.04),
+              Expanded(
+                flex: 2,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    doctorImageAsset,
+                    width: screenSize.width * 0.35,
+                    height: screenSize.width * 0.35,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ],
@@ -161,8 +187,9 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
 
   /// **My Appointments Card**
   Widget _buildMyAppointmentsCard() {
+    final screenSize = MediaQuery.of(context).size;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+      margin: EdgeInsets.symmetric(horizontal: screenSize.width * 0.04),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -211,16 +238,24 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
 
   /// **Nearest Available Places Section**
   Widget _buildNearestPlacesSection() {
+    final screenSize = MediaQuery.of(context).size;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.04),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text("Nearest available places", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          _buildDayRow("5 Sep, Monday", mondayTimes),
-          const SizedBox(height: 16),
-          _buildDayRow("6 Sep, Tuesday", null),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildDayRow("5 Sep, Monday", mondayTimes),
+                const SizedBox(width: 16),
+                _buildDayRow("6 Sep, Tuesday", null),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -263,8 +298,9 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
 
   /// **Bottom Button**
   Widget _buildBottomButton() {
+    final screenSize = MediaQuery.of(context).size;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 28),
+      margin: EdgeInsets.symmetric(horizontal: screenSize.width * 0.07),
       width: double.infinity,
       height: 56,
       child: ElevatedButton(
@@ -273,9 +309,12 @@ class _AppointmentDetailScreenState extends State<AppointmentDetailScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         onPressed: () {},
-        child: Text(
-          selectedTime != null ? "Select $selectedTime - $selectedDayLabel" : "Select time",
-          style: const TextStyle(color: Colors.black87),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            selectedTime != null ? "Select $selectedTime - $selectedDayLabel" : "Select time",
+            style: const TextStyle(color: Colors.black87),
+          ),
         ),
       ),
     );

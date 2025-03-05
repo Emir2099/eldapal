@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vibration/vibration.dart';
+// import 'package:vibration/vibration.dart';
 import '/models/medication_model.dart';
 
 class ElderMedicationCard extends StatefulWidget {
@@ -31,30 +31,30 @@ class _ElderMedicationCardState extends State<ElderMedicationCard> {
   void _checkTime() async {
     final now = DateTime.now();
     if (_scheduledTime.isBefore(now) && !widget.medication.isTaken) {
-      _startVibration();
+      // _startVibration();
     }
   }
 
-  void _startVibration() async {
-    if (await Vibration.hasVibrator() ?? false) {
-      setState(() => _isVibrating = true);
-      Vibration.vibrate(
-        pattern: [500, 1000], // Vibrate 500ms, pause 1000ms
-        repeat: -1 // Infinite loop
-      );
-    }
-  }
+  // void _startVibration() async {
+  //   if (await Vibration.hasVibrator() ?? false) {
+  //     setState(() => _isVibrating = true);
+  //     Vibration.vibrate(
+  //       pattern: [500, 1000], // Vibrate 500ms, pause 1000ms
+  //       repeat: -1 // Infinite loop
+  //     );
+  //   }
+  // }
 
-  void _stopVibration() {
-    Vibration.cancel();
-    setState(() => _isVibrating = false);
-  }
+  // void _stopVibration() {
+  //   Vibration.cancel();
+  //   setState(() => _isVibrating = false);
+  // }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (_isVibrating) _stopVibration();
+        // if (_isVibrating) _stopVibration();
       },
       child: Container(
         width: double.infinity,

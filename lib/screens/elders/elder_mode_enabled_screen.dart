@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:vibration/vibration.dart';
+// import 'package:vibration/vibration.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -63,7 +63,7 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
   @override
   void initState() {
     super.initState();
-    _checkVibrator();
+    // _checkVibrator();
     _loadBeepSound();
     _vibrationTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
@@ -100,13 +100,13 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
 
   void _startAlerts() async {
     // Start vibration if not already vibrating
-    if (_hasVibrator) {
-      try {
-        Vibration.vibrate(pattern: [500, 1000], repeat: -1);
-      } catch (e) {
-        debugPrint('Vibration error: $e');
-      }
-    }
+    // if (_hasVibrator) {
+    //   try {
+    //     Vibration.vibrate(pattern: [500, 1000], repeat: -1);
+    //   } catch (e) {
+    //     debugPrint('Vibration error: $e');
+    //   }
+    // }
 
     // Start beep if not already beeping
     if (!_isPlayingBeep) {
@@ -121,13 +121,13 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
 
   void _stopAlerts() async {
     // Stop vibration
-    if (_hasVibrator) {
-      try {
-        Vibration.cancel();
-      } catch (e) {
-        debugPrint('Vibration cancel error: $e');
-      }
-    }
+    // if (_hasVibrator) {
+    //   try {
+    //     Vibration.cancel();
+    //   } catch (e) {
+    //     debugPrint('Vibration cancel error: $e');
+    //   }
+    // }
 
     // Stop beep
     if (_isPlayingBeep) {
@@ -140,13 +140,13 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
     }
   }
 
-  Future<void> _checkVibrator() async {
-    try {
-      _hasVibrator = await Vibration.hasVibrator() ?? false;
-    } catch (e) {
-      _hasVibrator = false;
-    }
-  }
+  // Future<void> _checkVibrator() async {
+  //   try {
+  //     _hasVibrator = await Vibration.hasVibrator() ?? false;
+  //   } catch (e) {
+  //     _hasVibrator = false;
+  //   }
+  // }
 
   @override
   void dispose() {
@@ -242,17 +242,17 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
     final isActive = canMark && !medication.isTaken;
     
     // Only vibrate if device has vibrator and medication is active
-    if (isActive && _hasVibrator) {
-      try {
-        Vibration.vibrate(
-          pattern: [500, 1000],
-          repeat: -1,
-        );
-      } catch (e) {
-        // Handle vibration error silently
-        print(e);
-      }
-    }
+    // if (isActive && _hasVibrator) {
+    //   try {
+    //     Vibration.vibrate(
+    //       pattern: [500, 1000],
+    //       repeat: -1,
+    //     );
+    //   } catch (e) {
+    //     // Handle vibration error silently
+    //     print(e);
+    //   }
+    // }
 
     return AnimatedOpacity(
       duration: const Duration(milliseconds: 300),
