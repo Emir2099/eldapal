@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:vibration/vibration.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '/providers/medications.dart';
 import '/models/medication_model.dart';
 
@@ -15,7 +16,45 @@ class ElderModeEnabledScreen extends StatefulWidget {
   State<ElderModeEnabledScreen> createState() => _ElderModeEnabledScreenState();
 }
 
+class OctagonBorder extends ShapeBorder {
+  const OctagonBorder();
+
+  @override
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
+    return getOuterPath(rect, textDirection: textDirection);
+  }
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    final size = rect.shortestSide;
+    final double inset = size * 0.2;
+    return Path()
+      ..moveTo(rect.left + inset, rect.top)
+      ..lineTo(rect.right - inset, rect.top)
+      ..lineTo(rect.right, rect.top + inset)
+      ..lineTo(rect.right, rect.bottom - inset)
+      ..lineTo(rect.right - inset, rect.bottom)
+      ..lineTo(rect.left + inset, rect.bottom)
+      ..lineTo(rect.left, rect.bottom - inset)
+      ..lineTo(rect.left, rect.top + inset)
+      ..close();
+  }
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+
+  @override
+  ShapeBorder scale(double t) => this;
+}
+
+
 class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
+  // Add emergency contact number
+  static const String emergencyNumber = 'tel:+12134117687'; // Replace with actual number
+
   late Timer _vibrationTimer;
   bool _hasVibrator = false;
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -34,6 +73,8 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
     });
   }
 
+
+
   Future<void> _loadBeepSound() async {
     try {
       await _audioPlayer.setReleaseMode(ReleaseMode.loop); // For continuous beeping
@@ -43,6 +84,8 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
       debugPrint('Error loading beep sound: $e');
     }
   }
+
+  
 
   void _checkMedicationAndAlert() {
     final medProvider = Provider.of<MedicationsProvider>(context, listen: false);
@@ -138,8 +181,9 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
                     return const SizedBox.shrink();
                   },
                 ),
-                const SizedBox(height: 30),
-                _buildFeatureSection(),
+                const SizedBox(height: 16),
+                _buildEmergencySection(), // Add the emergency section
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -301,32 +345,6 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
     );
   }
 
-  Widget _buildFeatureSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Elder Mode Features',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        _buildFeatureCard(
-          icon: Icons.accessibility_new,
-          title: 'Simplified Interface',
-          description: 'Large text and clear buttons',
-        ),
-        _buildFeatureCard(
-          icon: Icons.notifications_active,
-          title: 'Vibration Alerts',
-          description: 'Strong physical reminders for medications',
-        ),
-        _buildFeatureCard(
-          icon: Icons.emergency_share,
-          title: 'Emergency Access',
-          description: 'Quick contact buttons',
-        ),
-      ],
-    );
-  }
 
   Widget _buildFeatureCard({
     required IconData icon,
@@ -386,4 +404,132 @@ class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
     }
     return closest;
   }
+
+  Future<void> _triggerTripleVibration() async {
+    for (int i = 0; i < 5; i++) {
+      await HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 220));
+    }
+  }
+
+  void _handleSOSPress() async {
+    await _triggerTripleVibration();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Emergency SOS Activated!',
+          style: TextStyle(fontSize: 18),
+        ),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
+    // TODO: Implement actual emergency contact logic
+  }
+
+  void _handleEmergencyCall() async {
+    final Uri phoneUri = Uri.parse(emergencyNumber);
+    try {
+      if (!await launchUrl(phoneUri, mode: LaunchMode.platformDefault)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Could not initiate emergency call',
+                style: TextStyle(fontSize: 18),
+              ),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error: ${e.toString()}',
+              style: const TextStyle(fontSize: 18),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildEmergencySection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          // SOS Button
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            width: double.infinity,
+            height: 120,
+            child: ElevatedButton(
+              onPressed: _handleSOSPress,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+                side: const BorderSide(
+                  color: Colors.white,
+                  width: 4,
+                ),
+                elevation: 8,
+              ),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.warning_rounded,
+                    size: 48,
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'SOS',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Emergency Call Button
+          SizedBox(
+            width: double.infinity,
+            height: 80,
+            child: ElevatedButton.icon(
+              onPressed: _handleEmergencyCall,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+              ),
+              icon: const Icon(Icons.phone, size: 32),
+              label: const Text(
+                'Emergency Call',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
