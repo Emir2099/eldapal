@@ -1,5 +1,6 @@
 import 'package:eldapal/screens/appointments/appointment_screen.dart';
 import 'package:eldapal/screens/emergency/emergency_screen.dart';
+import 'package:eldapal/screens/facerecognition/face_recognition_screen.dart';
 import 'package:eldapal/screens/health/health_screen.dart';
 import 'package:eldapal/screens/medication/medication_screen.dart';
 import 'package:flutter/material.dart';
@@ -418,8 +419,8 @@ class _CircularCarouselState extends State<_CircularCarousel> {
       icon: Icons.monitor_heart,
     ),
     _CarouselTile(
-      title: "Quote",
-      subtitle: "Daily Inspiration",
+      title: "Memory Support",
+      subtitle: "Family forever",
       icon: Icons.format_quote,
     ),
     _CarouselTile(
@@ -544,6 +545,11 @@ Widget _buildTile(BuildContext context, _CarouselTile tile) {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => HealthScreen()),
+              );
+            } else if (tile.title == "Memory Support") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FaceRecognitionScreen()),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(

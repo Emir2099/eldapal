@@ -16,13 +16,13 @@ class MusicService {
 
     if (hour >= 6 && hour < 12) {
       mood = 'CALMING';
-      searchQuery = 'calming'; // Adjust query as needed.
+      searchQuery = 'soothing'; // Adjust query as needed.
     } else if (hour >= 12 && hour < 18) {
       mood = 'SOOTHING';
       searchQuery = 'soothing';
     } else {
       mood = 'RELAXING';
-      searchQuery = 'relaxing';
+      searchQuery = 'soothing';
     }
 
     final url = Uri.parse(
