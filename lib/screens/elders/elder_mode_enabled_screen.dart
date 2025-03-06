@@ -53,7 +53,7 @@ class OctagonBorder extends ShapeBorder {
 
 class _ElderModeEnabledScreenState extends State<ElderModeEnabledScreen> {
   // Add emergency contact number
-  static const String emergencyNumber = 'tel:+12134117687'; // Replace with actual number
+  static const String emergencyNumber = 'tel:+'; // Replace with actual number
 
   late Timer _vibrationTimer;
   bool _hasVibrator = false;

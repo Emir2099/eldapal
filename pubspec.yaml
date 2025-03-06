@@ -51,6 +51,8 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   get: ^4.6.5
+  flutter_tts: ^3.6.3
+  speech_to_text: ^6.1.1
   
 dev_dependencies:
   flutter_test:
@@ -72,6 +74,9 @@ flutter:
       - assets/images/floral_pattern.png
       - assets/images/doctor1.png
       - assets/sounds/alert_beep.mp3
+      - assets/sounds/correct.mp3
+      - assets/sounds/wrong.mp3
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
