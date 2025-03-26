@@ -12,6 +12,8 @@ import '../screens/settings/setting_screen.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:just_audio/just_audio.dart';
 import '../services/music_service.dart'; // See music_service.dart below.
+import '../screens/relax_mode_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   final bool elderMode;
   final ValueChanged<bool> onThemeChanged;
@@ -127,15 +129,81 @@ Widget _buildAnimatedHeader(BuildContext context) {
         const Positioned.fill(
           child: _AnimatedWave(height: 500),
         ),
-        // Optional menu icon.
+        // Update the menu icon to question mark with ChatBot functionality
         Positioned(
           top: 40,
           right: 20,
           child: IconButton(
-            icon: const Icon(Icons.more_horiz, color: Colors.white70),
+            icon: const Icon(Icons.question_mark_rounded, color: Colors.white),
             onPressed: () {
-              // TODO: handle menu if needed.
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isSmallScreen = constraints.maxHeight < 400;
+                      return Container(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.8,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Navigation Assistant',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Where would you like to go?',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              if (isSmallScreen) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.swipe_vertical,
+                                      size: 16,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Scroll for more options',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                              const SizedBox(height: 16),
+                              Expanded(
+                                child: _buildNavigationOptions(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                  ),
+                ),
+              );
             },
+            tooltip: 'Navigation Assistant',
           ),
         ),
         // Centered header content.
@@ -197,8 +265,157 @@ Widget _buildAnimatedHeader(BuildContext context) {
     ),
   );
 }
-}
 
+Widget _buildNavigationOptions(BuildContext context) {
+  final navigationItems = [
+    {
+      'title': 'Medicine Reminder',
+      'icon': Icons.medical_services,
+      'screen': const MedicationScreen(),
+      'color': Colors.blue,
+      'description': 'Track and manage your medications',
+      'background': const Color(0xFFE3F2FD),
+    },
+    {
+      'title': 'Appointments',
+      'icon': Icons.calendar_today,
+      'screen': const AppointmentsListScreen(),
+      'color': Colors.green,
+      'description': 'Schedule and view appointments',
+      'background': const Color(0xFFE8F5E9),
+    },
+    {
+      'title': 'Emergency',
+      'icon': Icons.emergency,
+      'screen': const EmergencyScreen(),
+      'color': Colors.red,
+      'description': 'Quick access to emergency contacts',
+      'background': const Color(0xFFFFEBEE),
+    },
+    {
+      'title': 'Health Tracking',
+      'icon': Icons.monitor_heart,
+      'screen': const HealthScreen(),
+      'color': Colors.orange,
+      'description': 'Monitor your health vitals',
+      'background': const Color(0xFFFFF3E0),
+    },
+    {
+      'title': 'Memory Support',
+      'icon': Icons.face,
+      'screen': const FaceRecognitionScreen(),
+      'color': Colors.purple,
+      'description': 'Recognize family and friends',
+      'background': const Color(0xFFF3E5F5),
+    },
+    {
+      'title': 'Relax Mode',
+      'icon': Icons.spa,
+      'screen': const RelaxModeScreen(),
+      'color': Colors.teal,
+      'description': 'Listen to calming ASMR sounds',
+      'background': const Color(0xFFE0F2F1),
+    },
+    {
+      'title': 'Settings',
+      'icon': Icons.settings,
+      'screen': const SettingsScreen(),
+      'color': Colors.grey,
+      'description': 'Customize app preferences',
+      'background': const Color(0xFFF5F5F5),
+    },
+  ];
+
+  return ScrollConfiguration(
+    behavior: ScrollConfiguration.of(context).copyWith(scrollbars: true),
+    child: SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ...navigationItems.map((item) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            child: Container(
+              decoration: BoxDecoration(
+                color: item['background'] as Color,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: (item['color'] as Color).withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => item['screen'] as Widget),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: (item['color'] as Color).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            item['icon'] as IconData,
+                            color: item['color'] as Color,
+                            size: 28,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['title'] as String,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item['description'] as String,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: item['color'] as Color,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )).toList(),
+        ],
+      ),
+    ),
+  );
+}
+}
 /// Animated wave widget.
 class _AnimatedWave extends StatefulWidget {
   final double height;
@@ -550,6 +767,11 @@ Widget _buildTile(BuildContext context, _CarouselTile tile) {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => FaceRecognitionScreen()),
+              );
+            } else if (tile.title == "Relax Mode") {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RelaxModeScreen()),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
