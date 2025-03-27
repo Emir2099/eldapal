@@ -11,8 +11,9 @@ import '../screens/elders/elder_tab_screen.dart';
 import '../screens/settings/setting_screen.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:just_audio/just_audio.dart';
-import '../services/music_service.dart'; // See music_service.dart below.
+import '../services/music_service.dart'; 
 import '../screens/relax_mode_screen.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 class HomeScreen extends StatefulWidget {
   final bool elderMode;
@@ -31,11 +32,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   late final List<Widget> _screens;
+  final SpeechToText _speechToText = SpeechToText();
+  bool _isVoiceEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    // Three tabs: 0 = Fancy Home, 1 = Elder tab, 2 = Settings tab.
+    // Three tabs: 0 = Home, 1 = Elder tab, 2 = Settings tab.
     _screens = [
       _FancyHomeContent(
         elderMode: widget.elderMode,
@@ -79,8 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-/// Example fancy home content.
-class _FancyHomeContent extends StatelessWidget {
+class _FancyHomeContent extends StatefulWidget { 
   final bool elderMode;
   final ValueChanged<bool> onThemeChanged;
 
@@ -91,13 +93,22 @@ class _FancyHomeContent extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  _FancyHomeContentState createState() => _FancyHomeContentState();
+}
+
+class _FancyHomeContentState extends State<_FancyHomeContent> {
+  final SpeechToText _speechToText = SpeechToText();
+  final PageController _pageController = PageController(); // Define _pageController
+  bool _isVoiceEnabled = false;
+
+  @override
   Widget build(BuildContext context) {
     // Scrollable content.
     return SingleChildScrollView(
       child: Column(
         children: [
           _buildAnimatedHeader(context),
-          _CircularCarousel(elderMode: elderMode),
+          _CircularCarousel(elderMode: widget.elderMode),
         ],
       ),
     );
@@ -135,74 +146,7 @@ Widget _buildAnimatedHeader(BuildContext context) {
           right: 20,
           child: IconButton(
             icon: const Icon(Icons.question_mark_rounded, color: Colors.white),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isSmallScreen = constraints.maxHeight < 400;
-                      return Container(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.8,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'Navigation Assistant',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Where would you like to go?',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              if (isSmallScreen) ...[
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.swipe_vertical,
-                                      size: 16,
-                                      color: Colors.grey[400],
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      'Scroll for more options',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                              const SizedBox(height: 16),
-                              Expanded(
-                                child: _buildNavigationOptions(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                  ),
-                ),
-              );
-            },
+            onPressed: () => _showNavigationAssistant(context), 
             tooltip: 'Navigation Assistant',
           ),
         ),
@@ -415,6 +359,309 @@ Widget _buildNavigationOptions(BuildContext context) {
     ),
   );
 }
+
+void _showNavigationAssistant(BuildContext context) {
+  final TextEditingController searchController = TextEditingController();
+  final FocusNode searchFocus = FocusNode();
+  bool _isListening = false;
+
+  showDialog(
+    context: context,
+    builder: (context) => StatefulBuilder(  // Use StatefulBuilder to update dialog state
+      builder: (context, setState) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Gradient Header with Search
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade100, Colors.purple.shade100],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Updated Row with proper constraints
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Navigation Assistant',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Transform.scale(
+                              scale: 0.8, 
+                              child: Switch(
+                                value: _isVoiceEnabled,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isVoiceEnabled = value;
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        value ? 'Voice input enabled' : 'Voice input disabled'
+                                      ),
+                                      duration: const Duration(seconds: 1),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Updated TextField with better constraints
+                    SizedBox(
+                      height: 48, 
+                      child: TextField(
+                        controller: searchController,
+                        focusNode: searchFocus,
+                        decoration: InputDecoration(
+                          hintText: 'Type what you\'re looking for...',
+                          hintStyle: const TextStyle(fontSize: 14),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          prefixIcon: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Icon(Icons.search, size: 20),
+                          ),
+                          suffixIcon: _isVoiceEnabled ? Container(
+                            width: 40, // Fixed width for mic button
+                            margin: const EdgeInsets.all(4),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: Icon(
+                                _isListening ? Icons.mic : Icons.mic_none,
+                                color: _isListening ? Colors.red : Colors.grey,
+                                size: 20,
+                              ),
+                              onPressed: () async {
+                                if (_isVoiceEnabled) {
+                                  if (!_isListening) {
+                                    var available = await _speechToText.initialize();
+                                    if (available) {
+                                      setState(() => _isListening = true);
+                                      HapticFeedback.mediumImpact();
+                                      
+                                      await _speechToText.listen(
+                                        onResult: (result) {
+                                          if (result.finalResult) {
+                                            searchController.text = result.recognizedWords;
+                                            setState(() => _isListening = false);
+                                            _handleNavigation(context, result.recognizedWords);
+                                          }
+                                        },
+                                      );
+                                    }
+                                  } else {
+                                    setState(() => _isListening = false);
+                                    _speechToText.stop();
+                                  }
+                                }
+                              },
+                            ),
+                          ) : null,
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Quick Access Chips
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _buildSuggestionChip(context, 'Medicine', Colors.blue),
+                    _buildSuggestionChip(context, 'Emergency', Colors.red),
+                    _buildSuggestionChip(context, 'Relax', Colors.teal),
+                    _buildSuggestionChip(context, 'Health', Colors.orange),
+                  ],
+                ),
+              ),
+              const Divider(),
+              // Available Options List
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.medical_services, color: Colors.blue),
+                        title: const Text('Medicine Reminder'),
+                        subtitle: const Text('Manage your medications'),
+                        onTap: () => _handleNavigation(context, 'medicine'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.emergency, color: Colors.red),
+                        title: const Text('Emergency'),
+                        subtitle: const Text('Quick access to emergency contacts'),
+                        onTap: () => _handleNavigation(context, 'emergency'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.spa, color: Colors.teal),
+                        title: const Text('Relax Mode'),
+                        subtitle: const Text('Listen to calming sounds'),
+                        onTap: () => _handleNavigation(context, 'relax'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.face, color: Colors.purple),
+                        title: const Text('Memory Support'),
+                        subtitle: const Text('Recognize family members'),
+                        onTap: () => _handleNavigation(context, 'face'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.calendar_today, color: Colors.green),
+                        title: const Text('Appointments'),
+                        subtitle: const Text('Manage your schedules'),
+                        onTap: () => _handleNavigation(context, 'appointment'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.monitor_heart, color: Colors.orange),
+                        title: const Text('Health Tracking'),
+                        subtitle: const Text('Monitor your vitals'),
+                        onTap: () => _handleNavigation(context, 'health'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+// helper method for suggestion chips
+Widget _buildSuggestionChip(BuildContext context, String label, Color color) {
+  return ActionChip(
+    avatar: Icon(
+      label == 'Medicine' ? Icons.medical_services :
+      label == 'Emergency' ? Icons.emergency :
+      Icons.spa,
+      size: 16,
+      color: color,
+    ),
+    label: Text(label),
+    labelStyle: TextStyle(color: color),
+    backgroundColor: color.withOpacity(0.1),
+    side: BorderSide(color: color.withOpacity(0.3)),
+    onPressed: () => _handleNavigation(context, label),
+  );
+}
+
+void _handleNavigation(BuildContext context, String query) {
+  query = query.toLowerCase();
+  
+  // Define navigation mappings with keywords
+  final navigationMappings = {
+    'medicine': {
+      'keywords': ['medicine', 'medication', 'pills', 'drugs', 'reminder'],
+      'screen': const MedicationScreen(),
+      'message': 'Opening Medicine Reminder...',
+    },
+    'appointment': {
+      'keywords': ['appointment', 'schedule', 'doctor', 'visit', 'meeting'],
+      'screen': const AppointmentsListScreen(),
+      'message': 'Opening Appointments...',
+    },
+    'emergency': {
+      'keywords': ['emergency', 'sos', 'help', 'urgent', 'crisis'],
+      'screen': const EmergencyScreen(),
+      'message': 'Opening Emergency...',
+    },
+    'health': {
+      'keywords': ['health', 'vitals', 'tracking', 'monitor', 'stats'],
+      'screen': const HealthScreen(),
+      'message': 'Opening Health Tracking...',
+    },
+    'face': {
+      'keywords': ['face', 'memory', 'recognition', 'family', 'remember'],
+      'screen': const FaceRecognitionScreen(),
+      'message': 'Opening Memory Support...',
+    },
+    'relax': {
+      'keywords': ['relax', 'meditation', 'calm', 'peace', 'asmr', 'music'],
+      'screen': const RelaxModeScreen(),
+      'message': 'Opening Relax Mode...',
+    },
+    'settings': {
+      'keywords': ['settings', 'preferences', 'config', 'setup'],
+      'screen': const SettingsScreen(),
+      'message': 'Opening Settings...',
+    },
+  };
+
+  // Find matching screen
+  for (var entry in navigationMappings.entries) {
+    if ((entry.value['keywords'] as List<String>).any((keyword) => query.contains(keyword))) {
+      Navigator.pop(context); // Close dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(entry.value['message'] as String)),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => entry.value['screen'] as Widget),
+      );
+      return;
+    }
+  }
+
+  // No match found
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('I couldn\'t find what you\'re looking for. Please try different words.'),
+      duration: Duration(seconds: 2),
+    ),
+  );
+}
+
+@override
+void dispose() {
+  _pageController.dispose();
+  _speechToText.stop();
+  super.dispose(); 
+}
+
 }
 /// Animated wave widget.
 class _AnimatedWave extends StatefulWidget {
@@ -723,7 +970,7 @@ Widget _buildTile(BuildContext context, _CarouselTile tile) {
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        // Minimal floral pattern (ensure asset exists).
+        // Minimal floral pattern
         image: const DecorationImage(
           image: AssetImage('assets/images/floral_pattern.png'),
           fit: BoxFit.cover,
