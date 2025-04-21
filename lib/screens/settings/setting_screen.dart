@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  final ValueChanged<bool> onHighContrastChanged; // Callback to notify theme change
+
+  const SettingsScreen({Key? key, required this.onHighContrastChanged}) : super(key: key);
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -34,6 +36,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _volumeLevel = prefs.getDouble('volumeLevel') ?? 0.8;
       _selectedLanguage = prefs.getString('language') ?? 'English';
     });
+
+    // Notify the app of the initial theme
+    widget.onHighContrastChanged(_highContrastMode);
   }
 
   Future<void> _saveSettings() async {
@@ -113,6 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onChanged: (value) {
             setState(() => _highContrastMode = value);
             _saveSettings();
+            widget.onHighContrastChanged(value); // Notify the app of the theme change
             HapticFeedback.lightImpact();
           },
         ),

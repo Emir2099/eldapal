@@ -8,7 +8,7 @@ class DateSelector extends StatefulWidget {
   const DateSelector({
     Key? key,
     required this.selectedDate,
-    required this.onDateChanged,
+    required this.onDateChanged, required TextStyle textStyle,
   }) : super(key: key);
 
   @override

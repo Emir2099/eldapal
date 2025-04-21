@@ -18,11 +18,13 @@ import 'package:speech_to_text/speech_to_text.dart';
 class HomeScreen extends StatefulWidget {
   final bool elderMode;
   final ValueChanged<bool> onThemeChanged;
+  final ValueChanged<bool> onHighContrastChanged; // Add this callback
 
   const HomeScreen({
     Key? key,
     required this.elderMode,
     required this.onThemeChanged,
+    required this.onHighContrastChanged, // Pass it from main.dart
   }) : super(key: key);
 
   @override
@@ -47,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ElderTabScreen(
         onElderModeChanged: widget.onThemeChanged,
       ),
-      const SettingsScreen(),
+      SettingsScreen(onHighContrastChanged: widget.onHighContrastChanged),
     ];
   }
 
@@ -263,7 +265,7 @@ Widget _buildNavigationOptions(BuildContext context) {
     {
       'title': 'Settings',
       'icon': Icons.settings,
-      'screen': const SettingsScreen(),
+      'screen': SettingsScreen(onHighContrastChanged: widget.onThemeChanged),
       'color': Colors.grey,
       'description': 'Customize app preferences',
       'background': const Color(0xFFF5F5F5),
@@ -626,7 +628,7 @@ void _handleNavigation(BuildContext context, String query) {
     },
     'settings': {
       'keywords': ['settings', 'preferences', 'config', 'setup'],
-      'screen': const SettingsScreen(),
+      'screen': SettingsScreen(onHighContrastChanged: widget.onThemeChanged),
       'message': 'Opening Settings...',
     },
   };

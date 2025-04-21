@@ -10,7 +10,6 @@ import '/models/medication_model.dart';
 import '/providers/medications.dart';
 import '/themes/app_theme.dart';
 
-
 class MedicationScreen extends StatefulWidget {
   const MedicationScreen({Key? key}) : super(key: key);
 
@@ -36,6 +35,69 @@ class _MedicationScreenState extends State<MedicationScreen> {
     _dosageController.dispose();
     _typeController.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final medications = Provider.of<MedicationsProvider>(context).medications;
+    final dailyMeds = medications.where((m) =>
+        m.date.year == _selectedDate.year &&
+        m.date.month == _selectedDate.month &&
+        m.date.day == _selectedDate.day).toList();
+
+    // Determine the text color for the date based on the theme
+    final isHighContrast = theme.scaffoldBackgroundColor == Colors.white;
+    final dateTextColor = isHighContrast ? Colors.white : Colors.black;
+
+    return Scaffold(
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        title: DateSelector(
+          selectedDate: _selectedDate,
+          onDateChanged: (date) => setState(() => _selectedDate = date),
+          textStyle: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: dateTextColor, // Dynamically set the text color
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history, size: 24),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => HistoryScreen(
+                  medications: medications,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: dailyMeds.isEmpty
+          ? Center(
+              child: Text(
+                'No medications for selected date',
+                style: theme.textTheme.bodyLarge,
+              ),
+            )
+          : ListView.builder(
+              itemCount: dailyMeds.length,
+              itemBuilder: (ctx, i) => MedicationCard(
+                medication: dailyMeds[i],
+                onEdit: () => _editMedication(dailyMeds[i]),
+                onLongPress: () => Provider.of<MedicationsProvider>(context, listen: false)
+                    .toggleTakenStatus(dailyMeds[i].id),
+              ),
+            ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: theme.colorScheme.primary,
+        child: const Icon(Icons.add, size: 32),
+        onPressed: () => _showAddMedicationDialog(context),
+      ),
+    );
   }
 
   void _showAddMedicationDialog(BuildContext context) {
@@ -143,14 +205,14 @@ class _MedicationScreenState extends State<MedicationScreen> {
     return 'mg';
   }
 
+  void _updateDate(DateTime selectedDate) {
+    setState(() => _selectedDate = selectedDate);
+  }
 
-void _updateDate(DateTime selectedDate) {
-  setState(() => _selectedDate = selectedDate);
-}
+  void _updateTime(TimeOfDay selectedTime) {
+    setState(() => _selectedTime = selectedTime);
+  }
 
-void _updateTime(TimeOfDay selectedTime) {
-  setState(() => _selectedTime = selectedTime);
-}
   Widget _buildDatePicker(BuildContext context) {
     return ListTile(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -304,54 +366,5 @@ void _updateTime(TimeOfDay selectedTime) {
       _clearForm();
       Navigator.pop(context);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = appTheme;
-    final medications = Provider.of<MedicationsProvider>(context).medications;
-    final dailyMeds = medications.where((m) =>
-        m.date.year == _selectedDate.year &&
-        m.date.month == _selectedDate.month &&
-        m.date.day == _selectedDate.day).toList();
-
-    return Scaffold(
-      backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        title: DateSelector(
-          selectedDate: _selectedDate,
-          onDateChanged: (date) => setState(() => _selectedDate = date),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history, size: 24),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => HistoryScreen(
-                  medications: medications,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: dailyMeds.isEmpty
-          ? Center(child: Text('No medications for selected date', style: theme.textTheme.bodyLarge))
-          : ListView.builder(
-              itemCount: dailyMeds.length,
-              itemBuilder: (ctx, i) => MedicationCard(
-                medication: dailyMeds[i],
-                onEdit: () => _editMedication(dailyMeds[i]),
-                onLongPress: () => Provider.of<MedicationsProvider>(context, listen: false)
-                    .toggleTakenStatus(dailyMeds[i].id),
-              ),
-            ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: theme.colorScheme.primary,
-        child: const Icon(Icons.add, size: 32),
-        onPressed: () => _showAddMedicationDialog(context),
-      ),
-    );
   }
 }
