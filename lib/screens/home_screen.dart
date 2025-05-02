@@ -18,13 +18,13 @@ import 'package:speech_to_text/speech_to_text.dart';
 class HomeScreen extends StatefulWidget {
   final bool elderMode;
   final ValueChanged<bool> onThemeChanged;
-  final ValueChanged<bool> onHighContrastChanged; // Add this callback
+  final ValueChanged<bool> onHighContrastChanged; 
 
   const HomeScreen({
     Key? key,
     required this.elderMode,
     required this.onThemeChanged,
-    required this.onHighContrastChanged, // Pass it from main.dart
+    required this.onHighContrastChanged, required void Function(double value) onFontSizeChanged, 
   }) : super(key: key);
 
   @override
@@ -49,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ElderTabScreen(
         onElderModeChanged: widget.onThemeChanged,
       ),
-      SettingsScreen(onHighContrastChanged: widget.onHighContrastChanged),
+      SettingsScreen(onHighContrastChanged: widget.onHighContrastChanged, onFontSizeChanged: (double value) {  },),
     ];
   }
 
@@ -265,7 +265,7 @@ Widget _buildNavigationOptions(BuildContext context) {
     {
       'title': 'Settings',
       'icon': Icons.settings,
-      'screen': SettingsScreen(onHighContrastChanged: widget.onThemeChanged),
+      'screen': SettingsScreen(onHighContrastChanged: widget.onThemeChanged, onFontSizeChanged: (double value) {  },),
       'color': Colors.grey,
       'description': 'Customize app preferences',
       'background': const Color(0xFFF5F5F5),
@@ -369,7 +369,7 @@ void _showNavigationAssistant(BuildContext context) {
 
   showDialog(
     context: context,
-    builder: (context) => StatefulBuilder(  // Use StatefulBuilder to update dialog state
+    builder: (context) => StatefulBuilder( // Use StatefulBuilder to update dialog state
       builder: (context, setState) => Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -414,7 +414,7 @@ void _showNavigationAssistant(BuildContext context) {
                             ),
                             const SizedBox(width: 8),
                             Transform.scale(
-                              scale: 0.8, 
+                              scale: 0.8,
                               child: Switch(
                                 value: _isVoiceEnabled,
                                 onChanged: (value) {
@@ -424,7 +424,7 @@ void _showNavigationAssistant(BuildContext context) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                        value ? 'Voice input enabled' : 'Voice input disabled'
+                                        value ? 'Voice input enabled' : 'Voice input disabled',
                                       ),
                                       duration: const Duration(seconds: 1),
                                     ),
@@ -439,7 +439,7 @@ void _showNavigationAssistant(BuildContext context) {
                     const SizedBox(height: 16),
                     // Updated TextField with better constraints
                     SizedBox(
-                      height: 48, 
+                      height: 48,
                       child: TextField(
                         controller: searchController,
                         focusNode: searchFocus,
@@ -455,24 +455,29 @@ void _showNavigationAssistant(BuildContext context) {
                             padding: EdgeInsets.symmetric(horizontal: 8),
                             child: Icon(Icons.search, size: 20),
                           ),
-                          suffixIcon: _isVoiceEnabled ? Container(
-                            width: 40, // Fixed width for mic button
+                          suffixIcon: Container(
+                            width: 40, // Fixed width for the button
                             margin: const EdgeInsets.all(4),
                             child: IconButton(
                               padding: EdgeInsets.zero,
                               icon: Icon(
-                                _isListening ? Icons.mic : Icons.mic_none,
-                                color: _isListening ? Colors.red : Colors.grey,
+                                _isVoiceEnabled
+                                    ? (_isListening ? Icons.mic : Icons.mic_none)
+                                    : Icons.search, // Show mic or search icon
+                                color: _isVoiceEnabled
+                                    ? (_isListening ? Colors.red : Colors.grey)
+                                    : Colors.blue,
                                 size: 20,
                               ),
                               onPressed: () async {
                                 if (_isVoiceEnabled) {
+                                  // Handle voice input
                                   if (!_isListening) {
                                     var available = await _speechToText.initialize();
                                     if (available) {
                                       setState(() => _isListening = true);
                                       HapticFeedback.mediumImpact();
-                                      
+
                                       await _speechToText.listen(
                                         onResult: (result) {
                                           if (result.finalResult) {
@@ -487,10 +492,21 @@ void _showNavigationAssistant(BuildContext context) {
                                     setState(() => _isListening = false);
                                     _speechToText.stop();
                                   }
+                                } else {
+                                  // Handle text input
+                                  if (searchController.text.isNotEmpty) {
+                                    _handleNavigation(context, searchController.text);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Please enter a query to search.'),
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                             ),
-                          ) : null,
+                          ),
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -628,7 +644,7 @@ void _handleNavigation(BuildContext context, String query) {
     },
     'settings': {
       'keywords': ['settings', 'preferences', 'config', 'setup'],
-      'screen': SettingsScreen(onHighContrastChanged: widget.onThemeChanged),
+      'screen': SettingsScreen(onHighContrastChanged: widget.onThemeChanged, onFontSizeChanged: (double value) {  },),
       'message': 'Opening Settings...',
     },
   };

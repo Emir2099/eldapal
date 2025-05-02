@@ -5,7 +5,7 @@ import 'providers/medications.dart';
 import 'screens/home_screen.dart';
 import 'themes/app_theme.dart';
 import 'themes/elder_theme.dart';
-import 'themes/high_contrast_theme.dart'; // Import the high contrast theme
+import 'themes/high_contrast_theme.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,8 +27,9 @@ class ElderCareApp extends StatefulWidget {
 }
 
 class _ElderCareAppState extends State<ElderCareApp> {
-  bool _elderMode = false; // Tracks whether Elder Mode is enabled
-  bool _highContrastMode = false; // Tracks whether High Contrast Mode is enabled
+  bool _elderMode = false;
+  bool _highContrastMode = false;
+  double _fontSize = 16.0; // Default font size
 
   void _toggleElderMode(bool value) {
     setState(() => _elderMode = value);
@@ -38,16 +39,25 @@ class _ElderCareAppState extends State<ElderCareApp> {
     setState(() => _highContrastMode = value);
   }
 
+  void _updateFontSize(double value) {
+    setState(() => _fontSize = value);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Determine the theme based on the current mode
     ThemeData currentTheme;
     if (_highContrastMode) {
-      currentTheme = highContrastTheme; // Use High Contrast Theme
+      currentTheme = highContrastTheme.copyWith(
+        textTheme: highContrastTheme.textTheme.apply(fontSizeFactor: _fontSize / 16.0),
+      );
     } else if (_elderMode) {
-      currentTheme = elderTheme; // Use Elder Theme
+      currentTheme = elderTheme.copyWith(
+        textTheme: elderTheme.textTheme.apply(fontSizeFactor: _fontSize / 16.0),
+      );
     } else {
-      currentTheme = appTheme; // Use Default Theme
+      currentTheme = appTheme.copyWith(
+        textTheme: appTheme.textTheme.apply(fontSizeFactor: _fontSize / 16.0),
+      );
     }
 
     return MaterialApp(
@@ -56,7 +66,8 @@ class _ElderCareAppState extends State<ElderCareApp> {
       home: HomeScreen(
         elderMode: _elderMode,
         onThemeChanged: _toggleElderMode,
-        onHighContrastChanged: _toggleHighContrastMode, // Pass the high contrast toggle
+        onHighContrastChanged: _toggleHighContrastMode,
+        onFontSizeChanged: _updateFontSize, // Pass font size callback
       ),
       debugShowCheckedModeBanner: false,
     );

@@ -95,7 +95,7 @@ Eldapal is a Flutter-based mobile application designed to assist elderly users i
 ### Steps
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/eldapal.git
+   git clone https://github.com/Emir2099/eldapal.git
    ```
 2. Navigate to the project directory:
    ```bash
